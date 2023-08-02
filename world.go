@@ -2,23 +2,41 @@ package main
 
 import "fmt"
 
+// Cell represents the single entity
 type Cell struct {
-	IsAlive  bool
+	// IsAlive stores the current state of the cell
+	IsAlive bool
+	// WasAlive stores cell state, before it's latest state change
 	WasAlive bool
 }
 
+// NewCell creates a new cell with the state as specified in the argument
 func NewCell(isAlive bool) Cell {
 	return Cell{
 		IsAlive: isAlive,
 	}
 }
 
+// World represents the 2d game world where cells interact
 type World [][]Cell
 
+// New instantiates a new game world
 func NewWorld() World {
 	return World{}
 }
 
+// Next generates the next state of the game world in place.
+// The cells interact as follows:
+//	 * a living cell with less than 2 live neighbours dies --> underpopulation
+//	 * a living cell with 2 or 3 live neighbours           --> continues to live
+//	 * a living cell with more than 3 live neighbours dies --> overcrowding
+//   * a dead cell with 3 live neighbours, lives           --> reproduction
+//
+// A cell has 8 neighbours.
+// If Cell(x,y) represents the co-ordinates of the cell, the neighbour map relative to this cell is:
+//		(x-1, y-1)  (x-1, y)  (x-1, y+1)
+//		(x, y-1)    [ Cell ]   (x, y+1)
+//		(x+1, y-1)  (x+1, y)  (x+1, y+1)
 func (w *World) Next() {
 	gameWorld := *w
 	for rowIdx := 0; rowIdx < len(gameWorld); rowIdx++ {
@@ -78,6 +96,7 @@ func (w *World) Next() {
 	}
 }
 
+// Show prints the current game state with * as live cells
 func (w World) Show() {
 	for _, row := range w {
 		for _, column := range row {
