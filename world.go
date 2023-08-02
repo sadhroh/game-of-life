@@ -21,8 +21,9 @@ func NewCell(isAlive bool) Cell {
 type World [][]Cell
 
 // New instantiates a new game world
-func NewWorld() World {
-	return World{}
+func NewWorld(seed int64, rows, columns int) World {
+	gameWorld, _ := LoadNewWorld(seed, rows, columns)
+	return gameWorld
 }
 
 // Next generates the next state of the game world in place.
