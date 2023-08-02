@@ -36,9 +36,12 @@ func init() {
 func Evolve() {
 	generation := 0
 
+	if *gameFile != ""{
+		*gameSeed = 0
+	}
 	// infinitely iterate & generate the next cell states
 	for {
-		fmt.Println("Generation:", generation)
+		fmt.Printf("Generation(seed[%d]): %d\n", *gameSeed, generation)
 		universe.Show()
 		universe.Next()
 		// don't generate anymore as all cells are dead
