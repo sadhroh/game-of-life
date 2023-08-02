@@ -17,13 +17,37 @@ func NewCell(isAlive bool) Cell {
 	}
 }
 
+// Spec is the game world specification
+type Spec struct {
+	// New flag creates a complete new game world
+	New bool
+	// Rows specifies the number of rows in the 2d game world
+	Rows int
+	// Columns specifies the number of rows in the 2d game world
+	Columns int
+	// Seed can be given as the starting random value to generate the new world
+	Seed int64
+	// GameFile contains the path to the save state of the game world
+	GameFile string
+}
+
 // World represents the 2d game world where cells interact
 type World [][]Cell
 
-// New instantiates a new game world
-func NewWorld(seed int64, rows, columns int) World {
-	gameWorld, _ := LoadNewWorld(seed, rows, columns)
-	return gameWorld
+// New instantiates a new game world with the specification as provided in the argument
+func NewWorld(cfg *Spec) (World, error) {
+	// load game world from save file
+	if cfg.GameFile != "" {
+		gameWorld, err := LoadWorldFromFile(cfg.GameFile)
+		if err != nil {
+			return nil, fmt.Errorf("unable to load the game world: %+w", err)
+		}
+		return gameWorld, nil
+	}
+
+	// generate new game world
+	gameWorld, _ := LoadNewWorld(cfg.Seed, cfg.Rows, cfg.Columns)
+	return gameWorld, nil
 }
 
 // Next generates the next state of the game world in place.
