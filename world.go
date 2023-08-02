@@ -17,10 +17,8 @@ func NewCell(isAlive bool) Cell {
 	}
 }
 
-// Spec is the game world specification
+// Spec is the game universe specification
 type Spec struct {
-	// New flag creates a complete new game world
-	New bool
 	// Rows specifies the number of rows in the 2d game world
 	Rows int
 	// Columns specifies the number of rows in the 2d game world
@@ -34,20 +32,28 @@ type Spec struct {
 // World represents the 2d game world where cells interact
 type World [][]Cell
 
+// Universe represents an instance of the 2d game world
+type Universe struct {
+	rows      int
+	cols      int
+	liveCells int
+	world     [][]Cell
+}
+
 // New instantiates a new game world with the specification as provided in the argument
-func NewWorld(cfg *Spec) (World, error) {
-	// load game world from save file
+func NewUniverse(cfg *Spec) (Universe, error) {
+	// load game universe from save file
 	if cfg.GameFile != "" {
-		gameWorld, err := LoadWorldFromFile(cfg.GameFile)
+		universe, err := LoadWorldFromFile(cfg.GameFile)
 		if err != nil {
-			return nil, fmt.Errorf("unable to load the game world: %+w", err)
+			return Universe{}, fmt.Errorf("unable to load the game world: %+w", err)
 		}
-		return gameWorld, nil
+		return universe, nil
 	}
 
-	// generate new game world
-	gameWorld, _ := LoadNewWorld(cfg.Seed, cfg.Rows, cfg.Columns)
-	return gameWorld, nil
+	// generate new game univers
+	universe, _ := LoadNewWorld(cfg.Seed, cfg.Rows, cfg.Columns)
+	return universe, nil
 }
 
 // Next generates the next state of the game world in place.
@@ -62,9 +68,10 @@ func NewWorld(cfg *Spec) (World, error) {
 //		(x-1, y-1)  (x-1, y)  (x-1, y+1)
 //		(x, y-1)    [ Cell ]   (x, y+1)
 //		(x+1, y-1)  (x+1, y)  (x+1, y+1)
-func (w *World) Next() {
-	gameWorld := *w
-	for rowIdx := 0; rowIdx < len(gameWorld); rowIdx++ {
+func (w *Universe) Next() {
+	livingCells := 0
+	gameWorld := (*w).world
+	for rowIdx := 0; rowIdx < w.rows; rowIdx++ {
 		for colIdx := 0; colIdx < len(gameWorld[rowIdx]); colIdx++ {
 			isAlive := gameWorld[rowIdx][colIdx].IsAlive
 
@@ -117,13 +124,30 @@ func (w *World) Next() {
 			// update cell state
 			gameWorld[rowIdx][colIdx].IsAlive = willBeAlive
 			gameWorld[rowIdx][colIdx].WasAlive = isAlive
+
+			if willBeAlive {
+				livingCells++
+			}
 		}
 	}
+	w.liveCells = livingCells
 }
 
 // Show prints the current game state with * as live cells
-func (w World) Show() {
-	for _, row := range w {
+func (w Universe) Show() {
+	// to pretty print top & bottom borders
+	borderPrinter := func(cols int) {
+		for i := 0; i <= cols; i++ {
+			fmt.Print("==")
+		}
+		fmt.Println()
+	}
+
+	borderPrinter(w.cols)       // for top border
+	defer borderPrinter(w.cols) // for bottom border
+
+	for _, row := range w.world {
+		fmt.Print("|")
 		for _, column := range row {
 			v := " "
 			if column.IsAlive {
@@ -131,6 +155,11 @@ func (w World) Show() {
 			}
 			fmt.Printf("%s ", v)
 		}
-		fmt.Println()
+		fmt.Println("|")
 	}
+}
+
+// Dead returns if all cells are dead in the universe
+func (w Universe) Dead() bool {
+	return w.liveCells == 0
 }
