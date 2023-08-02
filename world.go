@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Cell struct {
 	IsAlive  bool
 	WasAlive bool
@@ -73,5 +75,18 @@ func (w *World) Next() {
 			gameWorld[rowIdx][colIdx].IsAlive = willBeAlive
 			gameWorld[rowIdx][colIdx].WasAlive = isAlive
 		}
+	}
+}
+
+func (w World) Show() {
+	for _, row := range w {
+		for _, column := range row {
+			v := " "
+			if column.IsAlive {
+				v = "*"
+			}
+			fmt.Printf("%s ", v)
+		}
+		fmt.Println()
 	}
 }
